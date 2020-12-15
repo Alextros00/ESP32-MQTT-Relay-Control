@@ -1,0 +1,61 @@
+menu "Example Configuration"
+
+config WIFI_SSID
+    string "WiFi SSID"
+    default "myssid"
+    help
+        SSID (network name) for the example to connect to.
+
+config WIFI_PASSWORD
+    string "WiFi Password"
+    default "mypassword"
+    help
+        WiFi password (WPA or WPA2) for the example to use.
+
+config BROKER_URL
+    string "Broker URL"
+    default "mqtt://mqtt.eclipse.org"
+    help
+        URL of the broker to connect to
+
+config BROKER_URL_FROM_STDIN
+    bool
+    default y if BROKER_URL = "FROM_STDIN"
+
+config ESP32_NUMBER_SELECTION
+    int "Enter the ESP32-X number"
+    default 0
+    help
+        This only affects the wake up message
+
+config RELAY_GPIO_NUMBER_SELECTION
+    int "Relay GPIO Number"
+    default 4
+    help
+        Enter the Relay Pin GPIO Number
+
+config SUBSCRIBE_TO_ONE_OR_TWO
+    int "enter 1 or 2"
+    default 1
+    help
+        Choose number of topics to subscribe to
+
+config SUBSCRIBE_TO_MQTT_1
+    string "MQTT Topic to Subscribe To"
+    default "esp/to/esp10"
+    help
+        Enter a MQTT Topic to Subscribe To
+
+config SUBSCRIBE_TO_MQTT_2
+    string "2nd MQTT Topic to Subscribe To"
+    default "esp/to/esp10"
+    help
+        If not needed leave blank
+
+config PUBLISH_TO_MQTT
+    string "MQTT Topic to Publish To"
+    default "esp/from/esp10"
+    help
+        Enter a MQTT Topic to publish To
+
+endmenu
