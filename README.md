@@ -23,7 +23,7 @@
 <br />
 <p align="center">
   <a href="https://github.com/Alextros00/ESP32-MQTT-Relay-Control">
-    <img src="https://github.com/Alextros00/Home-Automation-NodeRED-ESP-Telegram/images/ESP32_RelayControl_Hardware.jpg" alt="Logo" width="30%" height="30%">
+    <img src="https://github.com/Alextros00/Home-Automation-NodeRED-ESP-Telegram/blob/main/images/ESP32_RelayControl_Hardware.jpg" alt="ESP32_RelayControl_Hardware" width="40%" height="40%">
   </a>
 
   <h3 align="center">ESP32-MQTT-Relay-Control</h3>
