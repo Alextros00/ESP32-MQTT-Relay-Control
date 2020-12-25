@@ -16,12 +16,14 @@
 [![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
+![GitHub search hit counter](https://img.shields.io/github/search/Alextros00/ESP32-MQTT-Relay-Control/goto?style=for-the-badge)
+[![GitHub last commit](https://img.shields.io/github/last-commit/Alextros00/ESP32-MQTT-Relay-Control?style=for-the-badge)](https://github.com/Alextros00/Home-Automation-NodeRED-ESP-Telegram)
 
 <!-- PROJECT LOGO -->
 <br />
 <p align="center">
   <a href="https://github.com/Alextros00/ESP32-MQTT-Relay-Control">
-    <img src="images/logo.png" alt="Logo" width="80" height="80">
+    <img src="images/ESP32_RelayControl_Hardware.jpg" alt="Logo" width="80" height="80">
   </a>
 
   <h3 align="center">ESP32-MQTT-Relay-Control</h3>
