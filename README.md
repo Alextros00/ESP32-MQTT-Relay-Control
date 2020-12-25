@@ -75,15 +75,6 @@
 
 This project is part of my [home automation series using Node-RED, ESP32s, Telegram and more.](). This repository describes the steps required to get the ESP32 to control a relay over WIFI using MQTT. 
 
-
-### Built With
-
-* []()
-* []()
-* []()
-
-
-
 <!-- GETTING STARTED -->
 ## Getting Started
 
