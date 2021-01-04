@@ -8,6 +8,7 @@
 #include "esp_system.h"
 #include "nvs_flash.h"
 #include "esp_event_loop.h"
+//#include "esp_event.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -26,16 +27,17 @@ static const char *TAG = "MQTT_EXAMPLE";
 
 static EventGroupHandle_t wifi_event_group;
 const static int CONNECTED_BIT = BIT0;
-//***********************************************************************
+//*******************set in menuconfig******************************
 #define RELAY_PIN (gpio_num_t) CONFIG_RELAY_GPIO_NUMBER_SELECTION
-char ESP32_MESSAGE_MQTT = CONFIG_ESP32_NUMBER_SELECTION;
+char ESP32_MESSAGE_MQTT = CONFIG_ESP32_NUMBER_SELECTION; //not being used
 const char *SUBSCRIBE_MQTT1 = CONFIG_SUBSCRIBE_TO_MQTT_1;
 const char *SUBSCRIBE_MQTT2 = CONFIG_SUBSCRIBE_TO_MQTT_2;
 const char *PUBLISH_MQTT = CONFIG_PUBLISH_TO_MQTT;
 //***********************************************************************
 int RELAY_CONNECTED = 0;
-bool RELAY_CHANGED = 0;
+bool RELAY_CHANGED = 0;		//flag set in MQTT_EVENT_DATA
 
+//*******************************************************************************************
 static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 {
     esp_mqtt_client_handle_t client = event->client;
@@ -50,11 +52,9 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
             msg_id = esp_mqtt_client_subscribe(client, SUBSCRIBE_MQTT1, 0);
             ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
 			if (CONFIG_SUBSCRIBE_TO_ONE_OR_TWO == 2){
-            msg_id = esp_mqtt_client_subscribe(client, SUBSCRIBE_MQTT2, 1);
-            ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
+				msg_id = esp_mqtt_client_subscribe(client, SUBSCRIBE_MQTT2, 1);
+				ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
 			}
-            //msg_id = esp_mqtt_client_unsubscribe(client, "esp/to/esp10");
-            //ESP_LOGI(TAG, "sent unsubscribe successful, msg_id=%d", msg_id);
             break;
         case MQTT_EVENT_DISCONNECTED:
             ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
@@ -63,7 +63,7 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
         case MQTT_EVENT_SUBSCRIBED:
             ESP_LOGI(TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d", event->msg_id);
             msg_id = esp_mqtt_client_publish(client, PUBLISH_MQTT, "ESP32 has subscribed", 0, 0, 0);
-            ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
+            ESP_LOGI(TAG, "ESP32 has subscribed, msg_id=%d", msg_id);
             break;
         case MQTT_EVENT_UNSUBSCRIBED:
             ESP_LOGI(TAG, "MQTT_EVENT_UNSUBSCRIBED, msg_id=%d", event->msg_id);
@@ -73,9 +73,21 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
             break;
         case MQTT_EVENT_DATA:
             ESP_LOGI(TAG, "MQTT_EVENT_DATA");
-            RELAY_CONNECTED = atoi(event->data) ? 0 : 1;
-            RELAY_CHANGED = true;
-            msg_id = esp_mqtt_client_publish(client, PUBLISH_MQTT,"ESP32 has recieved message" , 0, 0, 0);
+            
+			int EVENT_DATA = atoi(event->data);
+			if (EVENT_DATA == 1 || EVENT_DATA == 0){//for turning on and off light
+				RELAY_CONNECTED = EVENT_DATA ? 1 : 0;
+				RELAY_CHANGED = true;
+				msg_id = esp_mqtt_client_publish(client, PUBLISH_MQTT,"ESP32 light toggled" , 0, 0, 0);
+			}
+			if (EVENT_DATA == 3){ //for checking if device is online
+				msg_id = esp_mqtt_client_publish(client, PUBLISH_MQTT,"ESP32 is alive" , 0, 0, 0);
+			}
+			if (EVENT_DATA == 4){// for checking the devices info
+				//msg_id = esp_mqtt_client_publish(client, PUBLISH_MQTT,HEAP_SIZE , 0, 0, 0);
+				//msg_id = esp_mqtt_client_publish(client, PUBLISH_MQTT,IDF_VERSION , 0, 0, 0);
+				msg_id = esp_mqtt_client_publish(client, PUBLISH_MQTT, "future stats" , 0, 0, 0);
+			}
             printf("TOPIC=%.*s\r\n", event->topic_len, event->topic);
             printf("DATA=%.*s\r\n", event->data_len, event->data);
             break;
@@ -88,7 +100,7 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
     }
     return ESP_OK;
 }
-
+//*******************************************************************************************
 static esp_err_t wifi_event_handler(void *ctx, system_event_t *event)
 {
     switch (event->event_id) {
@@ -108,7 +120,7 @@ static esp_err_t wifi_event_handler(void *ctx, system_event_t *event)
     }
     return ESP_OK;
 }
-
+//*******************************************************************************************
 static void wifi_init(void)
 {
     tcpip_adapter_init();
@@ -130,13 +142,16 @@ static void wifi_init(void)
     ESP_LOGI(TAG, "Waiting for wifi");
     xEventGroupWaitBits(wifi_event_group, CONNECTED_BIT, false, true, portMAX_DELAY);
 }
-
+//*******************************************************************************************
 static void mqtt_app_start(void)
 {
     esp_mqtt_client_config_t mqtt_cfg = {
         .uri = CONFIG_BROKER_URL,
         .event_handle = mqtt_event_handler,
-        // .user_context = (void *)your_context
+        // .user_context = (void *)your_context,
+		.lwt_topic = PUBLISH_MQTT,
+		.lwt_msg = "ESP32 last will message",
+
     };
 
 #if CONFIG_BROKER_URL_FROM_STDIN
@@ -167,7 +182,7 @@ static void mqtt_app_start(void)
     esp_mqtt_client_handle_t client = esp_mqtt_client_init(&mqtt_cfg);
     esp_mqtt_client_start(client);
 }
-
+//*******************************************************************************************
 void app_main()
 {
     ESP_LOGI(TAG, "[APP] Startup..");
@@ -189,7 +204,7 @@ void app_main()
     mqtt_app_start();
 
     while(true){
-	vTaskDelay(50 / portTICK_PERIOD_MS);
+		vTaskDelay(50 / portTICK_PERIOD_MS);
         if (RELAY_CHANGED) {
             RELAY_CHANGED = false;
             gpio_set_level(RELAY_PIN, RELAY_CONNECTED);
